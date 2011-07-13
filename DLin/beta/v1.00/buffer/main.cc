@@ -18,6 +18,6 @@ int main(int argc, char *argv[])
 token = nexttoken();
     cout<<"记号："<<token<<endl;
 	//cout<<"行号"<<lineno<<endl;
-     cout<<lexical_value<<endl;
+    // cout<<lexical_value<<endl;
     return 0;
 }
