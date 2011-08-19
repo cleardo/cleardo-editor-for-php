@@ -2,6 +2,7 @@
 #include "global.h"
 #include "symbol.h"
 #include "lexer.h"
+#include "buffer.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,11 +16,13 @@ int main(int argc, char *argv[])
     cout<<lexical_value<<endl;
 	cout<<"符号表输出："<<endl;
 	symtable_dump();
-	copy_left_buf_dump();
+
 	token = nexttoken();
 	cout<<"记号："<<token<<endl;
 	cout<<"行号"<<lineno<<endl;
     cout<<lexical_value<<endl;
+
+	// ArrayDump(lex_temp_buf, 5);
 	/*
 	token = nexttoken();
 	cout<<"记号："<<token<<endl;

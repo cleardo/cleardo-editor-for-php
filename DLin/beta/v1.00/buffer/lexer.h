@@ -22,6 +22,7 @@ void set_lexeme_begin();
 void retract(int);		// 撤回指针
 int fail();
 void recover();			// 词法分析错误恢复
+void lex_restore();
 
 /**
  * 测试函数

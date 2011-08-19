@@ -2,6 +2,7 @@
 #include "global.h"
 #include "lexer.h"
 #include "symbol.h"
+#include "buffer.h"
 
 typedef int token;
 
@@ -20,6 +21,7 @@ int pass_left = 0;
 int pass_right = 0;	// 标记是否越过缓冲区边界
 int crossbuf = 0;
 char left_buf[LEX_BUF_HALF_SIZE+1];
+int numchar_pointer = 0;
 
 void lex_init_input(char* filename)
 {
@@ -39,7 +41,9 @@ void lex_init_input(char* filename)
 void lex_load_temp_buf()
 {
 	int read_count = 0;
+	if (!(read_count = lex_getbuff(lex_temp_buf))) {
     	read_count = fread(lex_temp_buf, sizeof(char), LEX_BUF_HALF_SIZE, prog_fp);
+	}
     	if (read_count < LEX_BUF_HALF_SIZE)
     	{
         	lex_temp_buf[read_count] = EOF;
@@ -67,8 +71,9 @@ void lex_load_left()
 {
     int i = 0;
     lex_load_temp_buf();
-	if (lexeme_beginning < LEX_BUF_SIZE)
+	if (lexeme_beginning < LEX_BUF_HALF_SIZE) {
 		crossbuf = copy_left_buf();
+	}
     while(lex_temp_buf[i])
     {
         lex_buff[i] = lex_temp_buf[i];
@@ -89,6 +94,17 @@ void lex_load_right()
 
 char nextchar()
 {
+	/*
+
+	char c;
+			if (crossbuf && left_buf[numchar_pointer]) {
+				c = left_buf[numchar_pointer++];
+				
+				lex_forward = LEX_BUF_ALLOCATED/2;
+				printf("ssfs---%c\n", c);
+				return c;
+			}
+	*/
     if (lex_buff[lex_forward] == EOF)
     {
         if (lex_forward == LEX_BUF_HALF_SIZE)
@@ -230,9 +246,6 @@ token nexttoken()
                 break;
             case 12:
                 c = nextchar();
-				printf("%c\n", c);
-				cout<<"forward"<<lex_forward<<endl;
-				cout<<"begin"<<lexeme_beginning<<endl;
                 if (isalnum(c))
                     state = 12;
                 else
@@ -240,13 +253,13 @@ token nexttoken()
                 break;
             case 13:		// 识别出标识符
                 retract(1);
-				cout<<"forward"<<lex_forward<<endl;
 		lexical_token = ID;
                 install_id();   // 填充到符号表，并返回表指针
                 return ID;
                 break;
             case 14:
                 c = nextchar();
+				
                 if (isdigit(c))
                     state = 15;
 		else  {
@@ -255,6 +268,7 @@ token nexttoken()
                 break;
             case 15:
                 c = nextchar();
+				
                 if (isdigit(c))
                     state = 15;
                 else if (c == '.')
@@ -267,6 +281,7 @@ token nexttoken()
                 break;
             case 16:
                 c = nextchar();
+				
                 if (isdigit(c))
                     state = 17;
                 break;
@@ -277,8 +292,12 @@ token nexttoken()
                 else if (c == 'E')
                     state = 18;
                 else {
+					if (crossbuf) {		// 测试输入"  2.354336>="
+						lex_restore();	// 恢复左缓冲区为"  2."
+						pass_left = 1;	// 识别科学计数法数字失败，等下不再加载左缓冲区
+					}
                     state = fail();
-		}
+				}
                 break;
             case 18:
                 c = nextchar();
@@ -308,18 +327,26 @@ token nexttoken()
                 break;
 		case 22:	// 普通实数
 			c = nextchar();
+			
 			if (isdigit(c))
 				state = 23;
+			else  {
+                    state = fail();	// 下一个转移图
+					cout<<"state:"<<state<<endl;
+			}
 			break;
 		case 23:	
 			c = nextchar();
+			
 			if (isdigit(c))
 				state = 23;
 			else if (c == '.')
 				state = 24;
 			break;
 		case 24:
+			
 			c = nextchar();
+			
 			if (isdigit(c))
 				state = 25;
 			break;
@@ -405,7 +432,17 @@ void install_num()
 {
     char lex_temp[111];
     int i = 0;
+	int j = 0;
     int lexeme_begin_temp = lexeme_beginning;
+	
+	if (crossbuf) 
+		{
+			while (lex_temp[i++] = left_buf[j++]) {};
+			i--;
+			lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+			crossbuf = 0;
+		}
+
     while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
     {
  	if (lex_buff[lexeme_begin_temp] == EOF) {
@@ -425,7 +462,7 @@ void install_num()
         lex_temp[i++] = lex_buff[lexeme_begin_temp++];
     }
 	lex_temp[i]= '\0';
-    	printf("aaa%s\n", lex_temp);
+	printf("num: %s\n", lex_temp);
 	lexical_value = 3;
 }
 
@@ -487,11 +524,27 @@ int fail()
 			break;
 		case 27:
 			// recover();
+			copy_left_buf_dump();
+			FatalError("未知记号");
 			break;
 		default:	// 编译错误
 			break;
     }
     return start;
+}
+
+void lex_restore()
+{
+	int i =0;
+	int lexeme_temp = lexeme_beginning;
+	lex_setbuff(left_buf);
+	while(left_buf[i]) {
+		lex_buff[lexeme_temp++] = left_buf[i];
+		i++;
+	}
+	
+	//lex_buf_dump();
+
 }
 
 /**
