@@ -31,3 +31,4 @@ void nextchar_dump(int);
 void lex_buf_dump();
 void lex_eof_test();
 void copy_left_buf_dump();
+void pointer_dump();

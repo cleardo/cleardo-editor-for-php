@@ -22,6 +22,18 @@ int main(int argc, char *argv[])
 	cout<<"行号"<<lineno<<endl;
     cout<<lexical_value<<endl;
 
+	token = nexttoken();
+	cout<<"记号："<<token<<endl;
+	cout<<"行号"<<lineno<<endl;
+    cout<<lexical_value<<endl;
+
+//pointer_dump();
+//lex_buf_dump();
+//nextchar_dump(8);
+	//char c = nextchar();
+	//copy_left_buf_dump();
+	//printf("xdxd%c\n", c);
+
 	// ArrayDump(lex_temp_buf, 5);
 	/*
 	token = nexttoken();

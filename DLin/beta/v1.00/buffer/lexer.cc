@@ -215,6 +215,7 @@ token nexttoken()
                 break;
             case 7:
                 lexical_value = EQ;
+				set_lexeme_begin();
                 return RELOP;
                 break;
             case 8:
@@ -255,6 +256,7 @@ token nexttoken()
                 retract(1);
 		lexical_token = ID;
                 install_id();   // 填充到符号表，并返回表指针
+				set_lexeme_begin();
                 return ID;
                 break;
             case 14:
@@ -274,10 +276,19 @@ token nexttoken()
                 else if (c == '.')
                     state = 16;
                 else if (c == 'E')
-		    state = 18;
+					state = 18;
                 else {
+					if (crossbuf) {		// 测试输入"  2.354336>="
+						lex_restore();	// 恢复左缓冲区为"  2."
+						pass_left = 1;	// 解析用科学表示法表示的实数失败，等下不再加载左缓冲区
+						//cout<<"buffer: "<<endl;
+						//lex_buffer_dump();
+					}
+					start = 22;
+					//printf("xdxd%c\n", c);
                     state = fail();
-		}
+					//printf("state%d\n", state);
+				}
                 break;
             case 16:
                 c = nextchar();
@@ -287,6 +298,7 @@ token nexttoken()
                 break;
             case 17:
                 c = nextchar();
+				
                 if (isdigit(c))
                     state = 17;
                 else if (c == 'E')
@@ -294,7 +306,9 @@ token nexttoken()
                 else {
 					if (crossbuf) {		// 测试输入"  2.354336>="
 						lex_restore();	// 恢复左缓冲区为"  2."
-						pass_left = 1;	// 识别科学计数法数字失败，等下不再加载左缓冲区
+						pass_left = 1;	// 解析用科学表示法表示的实数失败，等下不再加载左缓冲区
+						//cout<<"buffer: "<<endl;
+						//lex_buffer_dump();
 					}
                     state = fail();
 				}
@@ -332,7 +346,7 @@ token nexttoken()
 				state = 23;
 			else  {
                     state = fail();	// 下一个转移图
-					cout<<"state:"<<state<<endl;
+
 			}
 			break;
 		case 23:	
@@ -342,6 +356,15 @@ token nexttoken()
 				state = 23;
 			else if (c == '.')
 				state = 24;
+			else {
+				if (crossbuf) {		// 测试输入"  123456>="
+						lex_restore();	// 恢复左缓冲区为"  2."
+						pass_left = 1;	// 解析用科学表示法表示的实数失败，等下不再加载左缓冲区
+						//lex_buffer_dump();
+					}
+
+                    state = fail();
+			}
 			break;
 		case 24:
 			
@@ -365,6 +388,7 @@ token nexttoken()
 			break;
 		case 27:	// 整数
 			c = nextchar();
+			
 			if (isdigit(c))
 				state = 28;
 			else 
@@ -379,6 +403,7 @@ token nexttoken()
 			break;
 		case 29:
 			retract(1);
+			set_lexeme_begin();
 			install_num();
 			return NUM;
 			break;
@@ -440,8 +465,11 @@ void install_num()
 			while (lex_temp[i++] = left_buf[j++]) {};
 			i--;
 			lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+			cout<<"end crossbuf"<<endl;
 			crossbuf = 0;
+			pass_left = pass_right = 0;
 		}
+
 
     while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
     {
@@ -464,6 +492,16 @@ void install_num()
 	lex_temp[i]= '\0';
 	printf("num: %s\n", lex_temp);
 	lexical_value = 3;
+
+	i = 0;
+    lex_load_temp_buf();
+    while(lex_temp_buf[i])
+    {
+        lex_buff[i] = lex_temp_buf[i];
+		i++;
+    }
+	//lex_load_right();
+	pass_left = pass_right = 0;
 }
 
 /**
@@ -524,8 +562,8 @@ int fail()
 			break;
 		case 27:
 			// recover();
-			copy_left_buf_dump();
-			FatalError("未知记号");
+			// copy_left_buf_dump();
+			FatalError("词法分析出错：未知词法元素！");
 			break;
 		default:	// 编译错误
 			break;
@@ -537,7 +575,7 @@ void lex_restore()
 {
 	int i =0;
 	int lexeme_temp = lexeme_beginning;
-	lex_setbuff(left_buf);
+	lex_setbuff(lex_buff);	// 把左部分缓冲区保存到输入临时存放区
 	while(left_buf[i]) {
 		lex_buff[lexeme_temp++] = left_buf[i];
 		i++;
@@ -587,4 +625,10 @@ void lex_eof_test()
 void copy_left_buf_dump()
 {
 	ArrayDump(left_buf, LEX_BUF_HALF_SIZE);
+}
+
+void pointer_dump()
+{
+	cout<<"forward: "<<lex_forward<<endl;
+	cout<<"begin: "<<lexeme_beginning<<endl;
 }
