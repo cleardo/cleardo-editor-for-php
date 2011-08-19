@@ -18,6 +18,8 @@ int lexical_token = 0;	// 词素类型
 int lineno = 1;
 int pass_left = 0;
 int pass_right = 0;	// 标记是否越过缓冲区边界
+int crossbuf = 0;
+char left_buf[LEX_BUF_HALF_SIZE+1];
 
 void lex_init_input(char* filename)
 {
@@ -46,6 +48,18 @@ void lex_load_temp_buf()
     	lex_temp_buf[read_count] = '\0';
 }
 
+int copy_left_buf()
+{
+	int i = 0;
+	int lexeme_temp_pointer = lexeme_beginning;
+	while(lexeme_temp_pointer != LEX_BUF_HALF_SIZE)
+	{
+		left_buf[i++] = lex_buff[lexeme_temp_pointer++];
+	}
+	left_buf[i] = '\0';
+	return lexeme_beginning;
+}
+
 /**
  * 加载左缓冲区
  */
@@ -53,6 +67,8 @@ void lex_load_left()
 {
     int i = 0;
     lex_load_temp_buf();
+	if (lexeme_beginning < LEX_BUF_SIZE)
+		crossbuf = copy_left_buf();
     while(lex_temp_buf[i])
     {
         lex_buff[i] = lex_temp_buf[i];
@@ -214,6 +230,9 @@ token nexttoken()
                 break;
             case 12:
                 c = nextchar();
+				printf("%c\n", c);
+				cout<<"forward"<<lex_forward<<endl;
+				cout<<"begin"<<lexeme_beginning<<endl;
                 if (isalnum(c))
                     state = 12;
                 else
@@ -221,6 +240,7 @@ token nexttoken()
                 break;
             case 13:		// 识别出标识符
                 retract(1);
+				cout<<"forward"<<lex_forward<<endl;
 		lexical_token = ID;
                 install_id();   // 填充到符号表，并返回表指针
                 return ID;
@@ -345,8 +365,17 @@ void install_id()
 	char id_lexeme[100];
     	char lex_temp[111];
     	int i = 0;
+		int j = 0;
     	int lexeme_begin_temp = lexeme_beginning;
-    while ((lexeme_begin_temp%8) != (lex_forward))
+		if (crossbuf) 
+		{
+			while (lex_temp[i++] = left_buf[j++]) {};
+			i--;
+			lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+			crossbuf = 0;
+		}
+
+    while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
     {
  	if (lex_buff[lexeme_begin_temp] == EOF) {
 		 if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
@@ -361,7 +390,9 @@ void install_id()
 	}
         lex_temp[i++] = lex_buff[lexeme_begin_temp++];
     }
+
 	lex_temp[i]= '\0';
+
 	strcpy(id_lexeme, lex_temp);
     	if (!(index = sym_lookup(id_lexeme)))
     	{
@@ -375,7 +406,7 @@ void install_num()
     char lex_temp[111];
     int i = 0;
     int lexeme_begin_temp = lexeme_beginning;
-    while ((lexeme_begin_temp%8) != (lex_forward))
+    while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
     {
  	if (lex_buff[lexeme_begin_temp] == EOF) {
 		 if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
@@ -498,4 +529,9 @@ void lex_eof_test()
         cout<<"缓冲区的左半部分分界符为End of file"<<endl;
     if (lex_buff[7] == EOF)
         cout<<"缓冲区的右半部分分界符为End of file"<<endl;
+}
+
+void copy_left_buf_dump()
+{
+	ArrayDump(left_buf, LEX_BUF_HALF_SIZE);
 }

@@ -13,8 +13,9 @@ int main(int argc, char *argv[])
 	cout<<"记号："<<token<<endl;
 	cout<<"行号"<<lineno<<endl;
     cout<<lexical_value<<endl;
-	//symtable_dump();
-	
+	cout<<"符号表输出："<<endl;
+	symtable_dump();
+	copy_left_buf_dump();
 	token = nexttoken();
 	cout<<"记号："<<token<<endl;
 	cout<<"行号"<<lineno<<endl;
