@@ -1,4 +1,4 @@
-#define LEX_BUF_ALLOCATED	8					// 分配的缓冲区大小
+#define LEX_BUF_ALLOCATED	10					// 分配的缓冲区大小
 #define LEX_BUF_SIZE        LEX_BUF_ALLOCATED-2 // 输入缓冲区的大小
 #define LEX_BUF_HALF_SIZE   (LEX_BUF_SIZE)/2		// 输入缓冲区的一半
 #define blank 	' '
