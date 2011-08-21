@@ -8,24 +8,8 @@ int main(int argc, char *argv[])
 {
     char* prog_file_name;
     prog_file_name = *++argv;   // 取得程序文件名
-    lex_init_input(prog_file_name);
-    int token;
-    token = nexttoken();
-	cout<<"记号："<<token<<endl;
-	cout<<"行号"<<lineno<<endl;
-    cout<<lexical_value<<endl;
-	cout<<"符号表输出："<<endl;
-	symtable_dump();
-
-	token = nexttoken();
-	cout<<"记号："<<token<<endl;
-	cout<<"行号"<<lineno<<endl;
-    cout<<lexical_value<<endl;
-
-	token = nexttoken();
-	cout<<"记号："<<token<<endl;
-	cout<<"行号"<<lineno<<endl;
-    cout<<lexical_value<<endl;
+    lex_init_input(prog_file_name);	// 初始化输入缓冲区，填充左半部分缓冲区
+    cout<<"处理语法产生式..."<<endl;
 
 //pointer_dump();
 //lex_buf_dump();
