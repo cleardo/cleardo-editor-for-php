@@ -304,14 +304,14 @@ token nexttoken()
                 else if (c == 'E')
                     state = 18;
                 else {
-					if (crossbuf) {		// 测试输入"  2.354336>="
-						lex_restore();	// 恢复左缓冲区为"  2."
-						pass_left = 1;	// 解析用科学表示法表示的实数失败，等下不再加载左缓冲区
-						//cout<<"buffer: "<<endl;
-						//lex_buffer_dump();
-					}
+		    if (crossbuf) {		// 测试输入"  2.354336>="
+			lex_restore();	// 恢复左缓冲区为"  2."
+			pass_left = 1;	// 解析用科学表示法表示的实数失败，等下不再加载左缓冲区
+			//cout<<"buffer: "<<endl;
+			//lex_buffer_dump();
+		    }
                     state = fail();
-				}
+		}
                 break;
             case 18:
                 c = nextchar();
