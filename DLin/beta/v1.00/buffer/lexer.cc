@@ -20,8 +20,11 @@ int lineno = 1;
 int pass_left = 0;
 int pass_right = 0;	// 标记是否越过缓冲区边界
 int crossbuf = 0;
+int crossrightbuf = 0;
 char left_buf[LEX_BUF_HALF_SIZE+1];
+char right_buf[LEX_BUF_HALF_SIZE+1];
 int numchar_pointer = 0;
+char* lexeme_str;
 
 void lex_init_input(char* filename)
 {
@@ -64,6 +67,18 @@ int copy_left_buf()
 	return lexeme_beginning;
 }
 
+int copy_right_buf()
+{
+	int i = 0;
+	int lexeme_temp_pointer = lexeme_beginning;
+	while(lexeme_temp_pointer != LEX_BUF_ALLOCATED - 1)
+	{
+		right_buf[i++] = lex_buff[lexeme_temp_pointer++];
+	}
+	right_buf[i] = '\0';
+	return lexeme_beginning;
+}
+
 /**
  * 加载左缓冲区
  */
@@ -86,6 +101,9 @@ void lex_load_right()
     int i = 0;
     int j = LEX_BUF_ALLOCATED/2;
     lex_load_temp_buf();
+    if (lexeme_beginning > LEX_BUF_HALF_SIZE) {
+		crossrightbuf = copy_right_buf();
+	}
     while(lex_temp_buf[i])
     {
         lex_buff[j++] = lex_temp_buf[i++];
@@ -113,6 +131,7 @@ char nextchar()
             		lex_load_right();
 			
 		} else {
+			cout<<"noright"<<endl;
 			pass_left = 0;
 		}
             lex_forward++;
@@ -238,12 +257,11 @@ token nexttoken()
                 break;
             case 11:
                 c = nextchar();
-				if (isalpha(c)) {
+		if (isalpha(c)) {
                     state = 12;
-				}
-				else {
-				state = fail();
-				}
+		} else {
+		    state = fail();
+		}
                 break;
             case 12:
                 c = nextchar();
@@ -407,41 +425,115 @@ token nexttoken()
 			install_num();
 			return NUM;
 			break;
+		case 30:
+		    c = nextchar(); // 取得下一个字符输入，因为前面如果多读入一个字符，回有回退指针动作，所以可放心读入下一个字符
+		    if (c == '%') {
+			state = 31;
+		    } 
+		    break;
+		case 31:
+		    c = nextchar();
+		    if (c == '{') {
+			state = 32;
+		    } else if (c == '}') {
+			state = 33;
+		    } else if (c == '%') {
+			state = 34;
+		    } else if (c == 't') {
+			state = 36;
+		    }
+		    break;
+		case 32:
+		    set_lexeme_begin();
+		    return PDT_DECL_BEGIN;
+		    break;
+		case 33:
+		    set_lexeme_begin();
+		    return PDT_DECL_END;
+		    break;
+		case 34:
+		    set_lexeme_begin();
+		    return PDT_DELIMIT;
+		    break;
+		case 36:
+		    c = nextchar();
+		    if (c == 'o') {
+			state = 37;
+		    }
+		    break;
+		case 37:
+		    c = nextchar();
+		    if (c == 'k') {
+			state = 38;
+		    }
+		    break;
+		case 38:
+		    c = nextchar();
+		    if (c == 'e') {
+			state = 39;
+		    }
+		    break;
+		case 39:
+		    c = nextchar();
+		    if (c == 'n') {
+			state = 40;
+		    }
+		    break;
+		case 40:
+		    set_lexeme_begin();
+		    return PDT_NEWTERMINAL;
+		    break;
         }
     }
 }
 
+/**
+ * 识别出ID的操作，插入到符号表，并返回索引
+ */
 void install_id()
 {
-	int index;
-	char id_lexeme[100];
-    	char lex_temp[111];
+	int index;		// 符号表索引
+	char id_lexeme[100];	// 词素字符串值
+    	char lex_temp[111];	// 临时存储字符串值
     	int i = 0;
-		int j = 0;
+	int j = 0;
     	int lexeme_begin_temp = lexeme_beginning;
-		if (crossbuf) 
-		{
-			while (lex_temp[i++] = left_buf[j++]) {};
-			i--;
-			lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
-			crossbuf = 0;
-		}
-
-    while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
-    {
- 	if (lex_buff[lexeme_begin_temp] == EOF) {
-		 if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
-	        {
-	            lexeme_begin_temp++;
-	        }
-	        else if (lexeme_begin_temp == LEX_BUF_ALLOCATED-1)
-	        {
-	            lexeme_begin_temp = 0;
-	        }
-		continue;
+	if (crossbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+	{	
+	    while (lex_temp[i++] = left_buf[j++]) {};
+	    i--;
+	    lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+	    cout<<"end crossbuf"<<endl;
+	    crossbuf = 0;
+	    pass_left = pass_right = 0;
 	}
-        lex_temp[i++] = lex_buff[lexeme_begin_temp++];
-    }
+
+	if (crossrightbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+	{	
+	    while (lex_temp[i++] = right_buf[j++]) {};
+	    i--;
+	    lexeme_begin_temp = 0;
+	    cout<<"end right crossbuf"<<endl;
+	    crossrightbuf = 0;
+	    pass_left = pass_right = 0;
+	}
+
+	while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
+	{
+	    if (lex_buff[lexeme_begin_temp] == EOF) 
+	    {
+		if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
+		{
+		    lexeme_begin_temp++;
+		}
+		else if (lexeme_begin_temp == LEX_BUF_ALLOCATED-1)
+		{
+		    lexeme_begin_temp = 0;
+		}
+		continue;
+	    }
+	    lex_temp[i++] = lex_buff[lexeme_begin_temp++];
+	}
 
 	lex_temp[i]= '\0';
 
@@ -451,6 +543,45 @@ void install_id()
         	index = sym_insert(id_lexeme, lexical_token);
     	}
     	lexical_value = index;
+}
+
+/**
+ * 取得当前识别词素的字符串值
+ */
+void lex_get_lexeme(char* lexeme_str)
+{
+    char id_lexeme[100];	// 词素字符串值
+    char lex_temp[111];	// 临时存储字符串值
+    int i = 0;
+    int j = 0;
+	    int lexeme_begin_temp = lexeme_beginning;
+    if (crossbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+    {	
+	while (lex_temp[i++] = left_buf[j++]) {};
+	i--;
+	lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+	crossbuf = 0;
+    }
+
+    while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
+    {
+	if (lex_buff[lexeme_begin_temp] == EOF) 
+	{
+	    if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
+	    {
+		lexeme_begin_temp++;
+	    }
+	    else if (lexeme_begin_temp == LEX_BUF_ALLOCATED-1)
+	    {
+		lexeme_begin_temp = 0;
+	    }
+	    continue;
+	}
+	lex_temp[i++] = lex_buff[lexeme_begin_temp++];
+    }
+
+    lex_temp[i]= '\0';
+    strcpy(lex_temp, lexeme_str);
 }
 
 void install_num()
@@ -528,14 +659,17 @@ int fail()
 	int left_cursor = LEX_BUF_HALF_SIZE;
 	if (lexeme_beginning < left_cursor && lex_forward > left_cursor)
 	{
+		// forward跨过缓冲区边界后失败并回退，不加载右缓冲区
 		pass_left = 1;
+		pass_right = 0;
 	} else {
-		if (lex_forward < lexeme_beginning)
+		if (lex_forward < lexeme_beginning && lexeme_beginning < left_cursor)
 		{
 			pass_right = 1;
 		}
-		if (lexeme_beginning > left_cursor)
+		if (lexeme_beginning > left_cursor && lex_forward < left_cursor)
 		{
+		    cout<<"failleft"<<endl;
 			pass_left = 1;
 		}
 	}
@@ -561,6 +695,9 @@ int fail()
 			start = 27;
 			break;
 		case 27:
+			start = 30;	// 注意：这里要对start进行设置，而不是state
+			break;
+		case 30:
 			// recover();
 			// copy_left_buf_dump();
 			FatalError("词法分析出错：未知词法元素！");

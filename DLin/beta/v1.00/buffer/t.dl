@@ -1,1 +1,5 @@
-  absfsf<>3.3E+34
+%token DIGIT
+%token ID
+
+%%
+line
