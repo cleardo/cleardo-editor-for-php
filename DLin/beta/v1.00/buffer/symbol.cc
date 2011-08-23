@@ -40,6 +40,14 @@ int sym_insert(char s[], int tok)
   return lastentry;
 }
 
+/**
+ * 返回指定索引的词素值
+ */
+char* sym_getSymbolEntry(int sym_index)
+{
+    return symtable[sym_index].lexptr;
+}
+
 void symtable_dump()
 {
 	int i;

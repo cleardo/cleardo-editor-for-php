@@ -18,12 +18,14 @@ token nexttoken();
 void ungetchar();
 void install_id();
 void install_num();
+void install_literal_tsym();
 void set_lexeme_begin();
 void retract(int);		// 撤回指针
 int fail();
 void recover();			// 词法分析错误恢复
 void lex_restore();
 void lex_get_lexeme(char*);
+char lex_curchar();
 
 /**
  * 测试函数

@@ -7,6 +7,7 @@ struct entry;
 
 int sym_lookup(char s[]);
 int sym_insert(char s[], int tok);
+char* sym_getSymbolEntry(int sym_index);
 
 /**
   符号表测试函数

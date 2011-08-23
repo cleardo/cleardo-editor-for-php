@@ -12,6 +12,10 @@
 #define PDT_DECL_END	266
 #define PDT_DELIMIT	267
 #define PDT_NEWTERMINAL 268
+#define PDT_DERIV	269
+#define PDT_LITERAL	270
+#define PDT_EXPR_END	271
+#define PDT_ALTERNATE	272
 
 #define DONE		300
 

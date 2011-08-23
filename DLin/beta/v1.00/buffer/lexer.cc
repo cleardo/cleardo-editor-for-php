@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "symbol.h"
 #include "buffer.h"
+#include "production.h"
 
 typedef int token;
 
@@ -28,10 +29,11 @@ char* lexeme_str;
 
 void lex_init_input(char* filename)
 {
+    filename = "t.dl";
     if ((prog_fp = fopen(filename, "r")) == NULL)
     {
         fprintf(stderr, "无法打开程序文件：%s", filename);
-		exit(1);
+	exit(1);
     }
     else
     {
@@ -429,7 +431,9 @@ token nexttoken()
 		    c = nextchar(); // 取得下一个字符输入，因为前面如果多读入一个字符，回有回退指针动作，所以可放心读入下一个字符
 		    if (c == '%') {
 			state = 31;
-		    } 
+		    } else {
+			state = fail();
+		    }
 		    break;
 		case 31:
 		    c = nextchar();
@@ -482,6 +486,69 @@ token nexttoken()
 		case 40:
 		    set_lexeme_begin();
 		    return PDT_NEWTERMINAL;
+		    break;
+		case 41:
+		    c = nextchar();
+		    if (c == '\'') {
+			state = 42;
+		    } else {
+			state = fail();
+		    }
+		    break;
+		case 42:
+		    c = nextchar();
+		    if (c != '\'') {
+			state = 42;
+		    } else {
+			state = 43;
+		    }
+		    break;
+		case 43:
+		    lexical_token = PDT_LITERAL;
+		    install_literal_tsym();   // 填充到符号表，并返回表指针
+		    set_lexeme_begin();
+		    return PDT_LITERAL;
+		    break;
+		case 44:
+		    c = nextchar();
+		    if (c == ':')
+		    {
+			state = 45;
+		    } else {
+			state = fail();
+		    }
+		    break;
+		case 45:
+		    set_lexeme_begin();
+		    return PDT_DERIV;
+		    break;
+		case 46:
+		    c = nextchar();
+		    if (c == ';')
+		    {
+			state = 47;
+		    } else {
+			state = fail();
+		    }
+		    break;
+		case 47:
+		    lexical_token = PDT_EXPR_END;
+		    set_lexeme_begin();
+		    return PDT_EXPR_END;
+		    break;
+		case 48:
+		    c = nextchar();
+		    if (c == '|')
+		    {
+			state = 49;
+		    } else {
+			state = fail();
+		    }
+		    break;
+		case 49:
+		    lexical_token = PDT_ALTERNATE;
+		    set_lexeme_begin();
+		    return PDT_ALTERNATE;
 		    break;
         }
     }
@@ -545,6 +612,62 @@ void install_id()
     	lexical_value = index;
 }
 
+void install_literal_tsym()
+{
+	int index;		// 符号表索引
+	char id_lexeme[100];	// 词素字符串值
+    	char lex_temp[111];	// 临时存储字符串值
+    	int i = 0;
+	int j = 1;
+    	int lexeme_begin_temp = lexeme_beginning + 1;
+	if (crossbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+	{	
+	    while (lex_temp[i++] = left_buf[j++]) {};
+	    i--;
+	    lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
+	    cout<<"end crossbuf"<<endl;
+	    crossbuf = 0;
+	    pass_left = pass_right = 0;
+	}
+
+	if (crossrightbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+	{	
+	    while (lex_temp[i++] = right_buf[j++]) {};
+	    i--;
+	    lexeme_begin_temp = 0;
+	    cout<<"end right crossbuf"<<endl;
+	    crossrightbuf = 0;
+	    pass_left = pass_right = 0;
+	}
+
+	while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
+	{
+	    if (lex_buff[lexeme_begin_temp] == EOF) 
+	    {
+		if (lexeme_begin_temp == LEX_BUF_HALF_SIZE)
+		{
+		    lexeme_begin_temp++;
+		}
+		else if (lexeme_begin_temp == LEX_BUF_ALLOCATED-1)
+		{
+		    lexeme_begin_temp = 0;
+		}
+		continue;
+	    }
+	    lex_temp[i++] = lex_buff[lexeme_begin_temp++];
+	}
+
+	lex_temp[i-1]= '\0';
+
+	strcpy(id_lexeme, lex_temp);
+    	if (!(index = sym_lookup(id_lexeme)))
+    	{
+        	index = sym_insert(id_lexeme, lexical_token);
+    	}
+    	lexical_value = index;
+	pdt_insertNewTerminal(index);
+}
+
 /**
  * 取得当前识别词素的字符串值
  */
@@ -562,6 +685,16 @@ void lex_get_lexeme(char* lexeme_str)
 	lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
 	crossbuf = 0;
     }
+
+    
+	if (crossrightbuf)	// 覆盖了前半部分缓冲区字符，进行特殊处理
+	{	
+	    while (lex_temp[i++] = right_buf[j++]) {};
+	    i--;
+	    lexeme_begin_temp = 0;
+	    cout<<"end right crossbuf"<<endl;
+	    crossrightbuf = 0;
+	}
 
     while ((lexeme_begin_temp%LEX_BUF_ALLOCATED) != (lex_forward))
     {
@@ -581,7 +714,8 @@ void lex_get_lexeme(char* lexeme_str)
     }
 
     lex_temp[i]= '\0';
-    strcpy(lex_temp, lexeme_str);
+    printf("%s\t", lex_temp);
+    strcpy(lexeme_str, lex_temp);
 }
 
 void install_num()
@@ -641,6 +775,7 @@ void install_num()
 void set_lexeme_begin()
 {
     lexeme_beginning = lex_forward;
+    crossbuf = crossrightbuf = 0;	// 识别记号成功，不用因为怕覆盖缓冲区而进行跨界缓存，故将标记清0
 }
 
 void retract(int i)
@@ -662,7 +797,10 @@ int fail()
 		// forward跨过缓冲区边界后失败并回退，不加载右缓冲区
 		pass_left = 1;
 		pass_right = 0;
-	} else {
+	} else if (lexeme_beginning > left_cursor && lex_forward < left_cursor) {
+		pass_right = 1;
+		pass_left = 0;
+	    /*
 		if (lex_forward < lexeme_beginning && lexeme_beginning < left_cursor)
 		{
 			pass_right = 1;
@@ -672,7 +810,18 @@ int fail()
 		    cout<<"failleft"<<endl;
 			pass_left = 1;
 		}
+	    */
+	} else if (lexeme_beginning < left_cursor && lex_forward < lexeme_beginning) {
+		pass_right = 1;
+		pass_left = 1;
+	} else if (lexeme_beginning > left_cursor && lex_forward < lexeme_beginning) {
+		pass_right = 1;
+		pass_left = 1;
+	} else {
+		pass_right = 0;
+		pass_left = 0;
 	}
+
 	if (lexeme_beginning == LEX_BUF_HALF_SIZE) {
 		lexeme_beginning++;
 	} else if (lexeme_beginning == LEX_BUF_ALLOCATED-1) {
@@ -698,8 +847,22 @@ int fail()
 			start = 30;	// 注意：这里要对start进行设置，而不是state
 			break;
 		case 30:
+			start = 41;
+			break;
+		case 41:
+			start = 44;
+			break;
+		case 44:
+			start = 46;
+			break;
+		case 46:
+			start =48;
+			break;
+		case 48:
 			// recover();
 			// copy_left_buf_dump();
+			lex_buf_dump();
+			pointer_dump();
 			FatalError("词法分析出错：未知词法元素！");
 			break;
 		default:	// 编译错误
@@ -720,6 +883,11 @@ void lex_restore()
 	
 	//lex_buf_dump();
 
+}
+
+char lex_curchar()
+{
+    return lex_buff[(lex_forward-1)%(LEX_BUF_ALLOCATED-1)];
 }
 
 /**
