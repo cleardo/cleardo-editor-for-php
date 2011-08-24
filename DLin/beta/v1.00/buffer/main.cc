@@ -73,14 +73,15 @@ int main(int argc, char *argv[])
 	    //break;
 	}
 	// cout<<pdt_terminalLookup(5)<<pdt_terminalLookup(2);
-	//slr_initPdtArr();
-	//slr_ipointer slr_ilist;
-	//slr_ilist = slr_initI0();
-	
+	slr_initPdtArr();
+	slr_ipointer slr_list;
+	slr_list = slr_initI0();
+	SlrPrint(slr_list);
+
 	//slr_added_test();
-	//slr_item_closure(slr_ilist);
-	
-	//slr_item_op();
+	slr_item_closure(slr_list);
+	SlrPrint(slr_list);
+	slr_item_op();
 /*
 	 FSList fsl, fsl2;
     CreateFSL(fsl);
@@ -146,7 +147,7 @@ int main(int argc, char *argv[])
 
 	pdt_list_dump();
 
-	pdt_tree_dump();
+	//pdt_tree_dump();
 /*
 	pdt_header_output(pdt_list->entry->sym.nsym);			    // line 的第一个结点: expr
 	pdt_pointer_output(pdt_list->entry->suc);			    // line 的第二个结点: 2

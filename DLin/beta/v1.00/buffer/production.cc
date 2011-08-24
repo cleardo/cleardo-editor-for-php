@@ -524,8 +524,8 @@ void slr_item_op()
 		    //cout<<"compare: "<<slr_compare(slr_I[8], itemlist);
 		    return;
 		}
-		//cout<<endl<<"item_count: "<<item_count<<endl;
-		//SlrPrint(p);
+		cout<<endl<<"item_count: "<<item_count<<endl;
+		SlrPrint(p);
 		slr_I[item_count++] = p;
 		EnQueue(Q, p);
 	    }
@@ -728,7 +728,7 @@ void slr_itemlist_dump(slr_ipointer list)
 void pdt_list_dump()
 {
     cout<<"开始打印语法产生式链表结构："<<endl;
-    //cout<<cleardo_G->sym<<"->";
+    cout<<cleardo_G->sym<<"->";
     pdt_hpointer cursor = pdt_list;
     while (cursor != pdt_sentinel)
     {
