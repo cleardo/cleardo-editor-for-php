@@ -48,6 +48,11 @@ char* sym_getSymbolEntry(int sym_index)
     return symtable[sym_index].lexptr;
 }
 
+int sym_getEntryIndex()
+{
+    return lastentry;
+}
+
 void symtable_dump()
 {
 	int i;

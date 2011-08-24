@@ -74,9 +74,54 @@ int main(int argc, char *argv[])
 	slr_initPdtArr();
 	slr_ipointer slr_ilist;
 	slr_ilist = slr_initI0();
-	slr_itemlist_dump(slr_ilist);
-	slr_pdt_dump();
-	slr_pdtNoTest();
+	
+	//slr_added_test();
+	slr_item_closure(slr_ilist);
+	pdt_getheader_test();
+	SlrPrint(slr_ilist);
+	slr_item_op();
+	cout<<"goto added:"<<endl;
+	added_goto_tsym();
+	cout<<"goto added:"<<endl;
+	added_goto_nsym();
+/*
+	slr_ipointer slr_ilist0 = slr_goto(slr_ilist, 1);
+	cout<<"goto1:"<<endl;
+	SlrPrint(slr_ilist0);
+
+	slr_ipointer slr_ilist1 = slr_goto(slr_ilist, 2);
+	cout<<"goto2:"<<endl;
+	SlrPrint(slr_ilist1);
+	
+	slr_ipointer slr_ilist3 = slr_goto(slr_ilist, 3);
+	cout<<"goto3:"<<endl;
+	SlrPrint(slr_ilist3);
+	slr_ipointer slr_ilist4 = slr_goto(slr_ilist, 4);
+	cout<<"goto4:"<<endl;
+	SlrPrint(slr_ilist4);
+	slr_ipointer slr_ilist5 = slr_goto(slr_ilist, 5);
+	cout<<"goto5:"<<endl;
+	SlrPrint(slr_ilist5);
+	slr_ipointer slr_ilist6 = slr_goto(slr_ilist, 6);
+	cout<<"goto6:"<<endl;
+	SlrPrint(slr_ilist6);
+	slr_ipointer slr_ilist7 = slr_goto(slr_ilist, 7);
+	cout<<"goto7:"<<endl;
+	SlrPrint(slr_ilist7);
+	slr_ipointer slr_ilist8 = slr_goto(slr_ilist, 8);
+	cout<<"goto8:"<<endl;
+	SlrPrint(slr_ilist8);
+	slr_ipointer slr_ilist9 = slr_goto(slr_ilist, 9);
+	cout<<"goto9:"<<endl;
+	SlrPrint(slr_ilist9);
+	slr_ipointer slr_ilist10 = slr_goto(slr_ilist, 10);
+	cout<<"goto10:"<<endl;
+	SlrPrint(slr_ilist10);
+	*/
+	//slr_pdt_dump();   // 输出产生式数组 slr_productions
+	//slr_pdtNoTest();
+	//slr_ipointer test_ilist_1 = slr_goto(slr_ilist, 1);
+	//slr_itemlist_dump(test_ilist_1);
 	// 进行php例程定义部分
 	cout<<"开始解析php自定义例程..."<<endl;
 	/*

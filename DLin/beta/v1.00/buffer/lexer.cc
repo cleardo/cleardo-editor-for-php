@@ -570,7 +570,7 @@ void install_id()
 	    while (lex_temp[i++] = left_buf[j++]) {};
 	    i--;
 	    lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
-	    cout<<"end crossbuf"<<endl;
+	    //cout<<"end crossbuf"<<endl;
 	    crossbuf = 0;
 	    pass_left = pass_right = 0;
 	}
@@ -580,7 +580,7 @@ void install_id()
 	    while (lex_temp[i++] = right_buf[j++]) {};
 	    i--;
 	    lexeme_begin_temp = 0;
-	    cout<<"end right crossbuf"<<endl;
+	    // cout<<"end right crossbuf"<<endl;
 	    crossrightbuf = 0;
 	    pass_left = pass_right = 0;
 	}
@@ -625,7 +625,7 @@ void install_literal_tsym()
 	    while (lex_temp[i++] = left_buf[j++]) {};
 	    i--;
 	    lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
-	    cout<<"end crossbuf"<<endl;
+	    //cout<<"end crossbuf"<<endl;
 	    crossbuf = 0;
 	    pass_left = pass_right = 0;
 	}
@@ -635,7 +635,7 @@ void install_literal_tsym()
 	    while (lex_temp[i++] = right_buf[j++]) {};
 	    i--;
 	    lexeme_begin_temp = 0;
-	    cout<<"end right crossbuf"<<endl;
+	    // cout<<"end right crossbuf"<<endl;
 	    crossrightbuf = 0;
 	    pass_left = pass_right = 0;
 	}
@@ -692,7 +692,7 @@ void lex_get_lexeme(char* lexeme_str)
 	    while (lex_temp[i++] = right_buf[j++]) {};
 	    i--;
 	    lexeme_begin_temp = 0;
-	    cout<<"end right crossbuf"<<endl;
+	    //cout<<"end right crossbuf"<<endl;
 	    crossrightbuf = 0;
 	}
 
@@ -730,7 +730,7 @@ void install_num()
 			while (lex_temp[i++] = left_buf[j++]) {};
 			i--;
 			lexeme_begin_temp = (LEX_BUF_ALLOCATED/2);
-			cout<<"end crossbuf"<<endl;
+			//cout<<"end crossbuf"<<endl;
 			crossbuf = 0;
 			pass_left = pass_right = 0;
 		}
