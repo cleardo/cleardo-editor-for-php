@@ -1,8 +1,9 @@
-%token DIGIT
+%token ID
 
 %%
-line : expr '\n' ;
-expr : expr '+' term | term ;
-term : term '*' factor | factor ;
-factor : '(' expr ')' | DIGIT ;
+E : T E1 ;
+E1 : '+' T E1 | # ;
+T : F T1 ;
+T1 : '*' F T1 | # ;
+F : '(' E ')' | ID ;
 %%

@@ -61,6 +61,9 @@ pdt_hpointer pdt_getheader(pdt_pointer pdt);
 void pdt_getheader_test();
 int SlrLocate(slr_ipointer fsl, slr_ipointer ch);
 void SlrMerge(slr_ipointer fsl1, slr_ipointer fsl2);
+slr_ilist slr_sort(slr_ilist p);
+int slr_exsist(slr_ilist p, int count);
+int slr_compare(slr_ilist L1, slr_ilist L2);
 
 void pdt_list_dump();
 void pdt_tsymtable_dump();

@@ -5,9 +5,10 @@
 #include "buffer.h"
 #include "production.h"
 #include "pdt_parser.h"
+#include "first.h"
 #include "error.h"
 
-/*
+
 struct pdt_node
 {
     int terminal;	    // 是否终结符：1 - 终结符; 2 - 非终结符
@@ -25,7 +26,7 @@ struct pdt_header
     pdt_pointer entry;	    // 指向语法产生式起始结点
     pdt_hpointer suc;	    // 指向可选语法产生式
 };
-*/
+
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
 	while((dlin_token = nexttoken()) != PDT_DELIMIT)
 	{
 	    pdt_headerFind(sym_getSymbolEntry(lexical_value), pdt_headFound);
+	    
 	    if (dlin_token == ID)
 	    {
 		// 取得下一个记号':'
@@ -71,19 +73,24 @@ int main(int argc, char *argv[])
 	    //break;
 	}
 	// cout<<pdt_terminalLookup(5)<<pdt_terminalLookup(2);
-	slr_initPdtArr();
-	slr_ipointer slr_ilist;
-	slr_ilist = slr_initI0();
+	//slr_initPdtArr();
+	//slr_ipointer slr_ilist;
+	//slr_ilist = slr_initI0();
 	
 	//slr_added_test();
-	slr_item_closure(slr_ilist);
-	pdt_getheader_test();
-	SlrPrint(slr_ilist);
-	slr_item_op();
-	cout<<"goto added:"<<endl;
-	added_goto_tsym();
-	cout<<"goto added:"<<endl;
-	added_goto_nsym();
+	//slr_item_closure(slr_ilist);
+	
+	//slr_item_op();
+/*
+	 FSList fsl, fsl2;
+    CreateFSL(fsl);
+    fsl = FIRST(list);
+    PrintFSL(fsl);
+    // fsl = FIRST_Str(list->suc->entry);
+    fsl = FOLLOW(list);
+    // FOLLOW2(list->suc->suc->suc->entry, fsl, 'A');
+    PrintFSL(fsl);
+*/
 /*
 	slr_ipointer slr_ilist0 = slr_goto(slr_ilist, 1);
 	cout<<"goto1:"<<endl;
@@ -136,9 +143,10 @@ int main(int argc, char *argv[])
 	pdt_tsymtable_dump();
 
 	cout<<endl<<"语法产生式头结点链表内容如下："<<endl;
+
 	pdt_list_dump();
 
-	//pdt_tree_dump();
+	pdt_tree_dump();
 /*
 	pdt_header_output(pdt_list->entry->sym.nsym);			    // line 的第一个结点: expr
 	pdt_pointer_output(pdt_list->entry->suc);			    // line 的第二个结点: 2

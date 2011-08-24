@@ -550,6 +550,23 @@ token nexttoken()
 		    set_lexeme_begin();
 		    return PDT_ALTERNATE;
 		    break;
+		case 50:
+		    c = nextchar();
+		    if ( c == '#')
+		    {
+			state = 51;
+		    }
+		    else 
+		    {
+			state = fail();
+		    }
+		    break;
+		case 51:
+		    lexical_token = PDT_EMPTY;
+		    install_empty();
+		    set_lexeme_begin();
+		    return PDT_EMPTY;
+		    break;
         }
     }
 }
@@ -612,6 +629,23 @@ void install_id()
     	lexical_value = index;
 }
 
+void install_empty()
+{
+    char lex_temp[2];
+    int index;
+    lex_temp[0] = '#';
+    lex_temp[1] = '\0';
+    if (!(index = sym_lookup(lex_temp)))
+    {
+	index = sym_insert(lex_temp, PDT_EMPTY);
+    }
+    lexical_value = index;
+    int tsym_index;
+    if (!(tsym_index = pdt_terminalLookup(index))) {
+	pdt_insertNewTerminal(index);
+    }
+}
+
 void install_literal_tsym()
 {
 	int index;		// 符号表索引
@@ -665,7 +699,10 @@ void install_literal_tsym()
         	index = sym_insert(id_lexeme, lexical_token);
     	}
     	lexical_value = index;
-	pdt_insertNewTerminal(index);
+	int tsym_index;
+	if (!(tsym_index = pdt_terminalLookup(index))) {
+	    pdt_insertNewTerminal(index);
+	}
 }
 
 /**
@@ -856,9 +893,12 @@ int fail()
 			start = 46;
 			break;
 		case 46:
-			start =48;
+			start = 48;
 			break;
 		case 48:
+			start = 50;
+			break;
+		case 50:
 			// recover();
 			// copy_left_buf_dump();
 			lex_buf_dump();

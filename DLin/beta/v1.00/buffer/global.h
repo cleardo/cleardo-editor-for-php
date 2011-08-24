@@ -16,6 +16,7 @@
 #define PDT_LITERAL	270
 #define PDT_EXPR_END	271
 #define PDT_ALTERNATE	272
+#define PDT_EMPTY	273
 
 #define DONE		300
 

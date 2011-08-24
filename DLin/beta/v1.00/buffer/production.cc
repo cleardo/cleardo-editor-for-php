@@ -49,6 +49,7 @@ pdt_pointer slr_productions[200];   // 语法产生式编号
 slr_ipointer slr_sentinel = NULL;
 slr_ipointer slr_I[500];
 
+
 struct slr_item 
 {
     int pdt_index;  // 语法产生式索引
@@ -373,8 +374,9 @@ slr_ipointer slr_goto(slr_ipointer list, int index)
     int tsym_index;	// 用于判断是否非终结符
     char* sym;
     slr_ilist itemlist;	// 新的Item集合
-    slr_ilist nolist;	// 空的Item集合
     SlrCreateList(itemlist);	// 创建新Item链表
+
+    slr_ilist nolist;	// 空的Item集合
     SlrCreateList(nolist);	// 创建新Item链表
 
     slr_ilist tsymlist;	// 空的Item集合
@@ -415,44 +417,21 @@ slr_ipointer slr_goto(slr_ipointer list, int index)
 	}
         if ((pdt->terminal == 1) && tsym_index)
 	{
-	    if (pdt->sym.tsym == tsym_index && (!slr_goto_added_tsym(h, tsym_index)))
+	    if (pdt->sym.tsym == tsym_index)
 	    {
 		item = (slr_ipointer)malloc(sizeof(struct slr_item));
 		item->pdt_index = pdt_id;
 		item->item_pos = new_pos + 1;
 		SlrInsert(item, itemlist);
-		insertable = 1;
-		set_goto_added_tsym(h, tsym_index);
-	    } else if (pdt->sym.tsym == tsym_index && slr_goto_added_tsym(h, tsym_index))
-	    {
-		item = (slr_ipointer)malloc(sizeof(struct slr_item));
-		item->pdt_index = pdt_id;
-		item->item_pos = new_pos + 1;
-		SlrInsert(item, tsymlist);
 	    }
-	   
-	    
 	} else if ((pdt->terminal == 0) && (tsym_index == 0)) {
-	    if (strcmp(pdt->sym.nsym->sym, sym) == 0 && (!slr_goto_added_nsym(h, sym)))
+	    if (strcmp(pdt->sym.nsym->sym, sym) == 0)
 	    {
 		item = (slr_ipointer)malloc(sizeof(struct slr_item));
 		item->pdt_index = pdt_id;
 		item->item_pos = new_pos + 1;
 		SlrInsert(item, itemlist);
-		insertable = 1;
-		set_goto_added_nsym(h, sym);
-	    } else if (strcmp(pdt->sym.nsym->sym, sym) == 0 && slr_goto_added_nsym(h, sym))
-	    {
-		item = (slr_ipointer)malloc(sizeof(struct slr_item));
-		item->pdt_index = pdt_id;
-		item->item_pos = new_pos + 1;
-		SlrInsert(item, nsymlist);
-	    }
-	}
-	if (insertable == 1)
-	{
-	    SlrMerge(itemlist, tsymlist);
-	    SlrMerge(itemlist, nsymlist);
+	    } 
 	}
 	item_cursor = item_cursor->next;    // 下一个I[n]链表项
     }
@@ -505,6 +484,10 @@ void slr_item_op()
 {
     LinkQueue Q;
     InitQueue(Q);
+    slr_I[0] = slr_sort(slr_I[0]);
+    cout<<"I[0]:"<<endl;
+    SlrPrint(slr_I[0]);
+    cout<<"I[0]结束"<<endl;
     EnQueue(Q, slr_I[0]);
     int item_count = 1;
     slr_ipointer slr_elem, p;
@@ -516,26 +499,100 @@ void slr_item_op()
 	
 	for (int i = symcount; i > 0; i--)
 	{
-	    cout<<endl;
 	    // SlrPrint(slr_elem);
 	    p = slr_goto(slr_elem, i);
-	    if (p->next != NULL)
-	    {
-		cout<<endl<<"item_count: "<<item_count<<'\t'<<i<<endl;
-		//if (item_count > 10) break;
-		SlrPrint(p);
+	    p = slr_sort(p);
+	    if ( (p->next != NULL) && (slr_exsist(p, item_count) == 0))
+	    {	
+		if (item_count > 100) {
+		    slr_ilist itemlist;	// 新的Item集合
+		    SlrCreateList(itemlist);	// 创建新Item链表
+		    slr_ilist item;
+		    /*
+		    item = (slr_ipointer)malloc(sizeof(struct slr_item));
+		    item->pdt_index = 4;
+		    item->item_pos = 1;
+		    SlrInsert(item, itemlist);
+		    item = (slr_ipointer)malloc(sizeof(struct slr_item));
+		    item->pdt_index = 3;
+		    item->item_pos = 1;
+		    SlrInsert(item, itemlist);
+		    SlrPrint(slr_I[8]);
+		    cout<<endl;
+		   */
+		    //SlrPrint(itemlist);
+		    //cout<<"compare: "<<slr_compare(slr_I[8], itemlist);
+		    return;
+		}
+		//cout<<endl<<"item_count: "<<item_count<<endl;
+		//SlrPrint(p);
 		slr_I[item_count++] = p;
-
 		EnQueue(Q, p);
 	    }
 	}
 	//break;
     }
-    //cout<<endl<<"item_count: "<<item_count<<endl;
-    //SlrPrint(slr_I[1]);
     //slr_ipointer item_test = slr_goto(slr_I[1], 9);
     //SlrPrint(item_test);
 }
+
+slr_ilist slr_sort(slr_ilist p)
+{
+    slr_ilist itemlist;	// 新的Item集合
+    SlrCreateList(itemlist);	// 创建新Item链表
+
+    slr_ipointer slr_temp_I[50];
+    for (int i = 0; i < 50; i++)
+    {
+	slr_temp_I[i] = NULL;
+    }
+    slr_ipointer temp;
+    temp = p->next;
+    while (temp)
+    {
+	slr_temp_I[temp->pdt_index] = temp;
+	temp = temp->next;
+    }
+    for (int i = 49; i >= 0; i--)
+    {
+	if (slr_temp_I[i] != NULL) {
+	    SlrInsert(slr_temp_I[i], itemlist);
+	}
+    }
+    return itemlist;
+}
+
+int slr_exsist(slr_ilist p, int count)
+{
+    int exsist = 0;
+    for (int i = 0; i < count; i++)
+    {
+	if (slr_compare(slr_I[i], p) == 2)
+	{
+	    exsist = 1;
+	}
+    }
+    return exsist;
+}
+
+int slr_compare(slr_ilist L1, slr_ilist L2)
+{
+    slr_ipointer a, b;
+    a = L1->next;
+    b = L2->next;
+    if ( a == NULL || b == NULL )
+	return 1;   // 两个链表至少一个为空
+    while ( a && b && a->pdt_index == b->pdt_index && a->item_pos == b->item_pos)
+    {
+	a = a->next;
+	b = b->next;
+    }
+    if (a == NULL && b == NULL)
+	return 2;   // 两个链表相等
+
+    return 0;	// 两个链表都不为空，且不等
+}
+
 
 int slr_getPdtNo(pdt_pointer p)
 {
@@ -671,7 +728,7 @@ void slr_itemlist_dump(slr_ipointer list)
 void pdt_list_dump()
 {
     cout<<"开始打印语法产生式链表结构："<<endl;
-    cout<<cleardo_G->sym<<"->";
+    //cout<<cleardo_G->sym<<"->";
     pdt_hpointer cursor = pdt_list;
     while (cursor != pdt_sentinel)
     {
@@ -721,6 +778,29 @@ void slr_visit(slr_ipointer e)
 
 void pdt_tree_dump()
 {
+    	pdt_header_output(pdt_list->entry->sym.nsym);			    // line 的第一个结点: E
+	pdt_header_output(pdt_list->entry->suc->sym.nsym);			    // line 的第一个结点: E
+	/*
+	pdt_header_output(pdt_list->entry->suc);			    // line 的第二个结点: T
+	pdt_pointer_output(pdt_list->entry->suc);			    // line 的第二个结点: 2
+	pdt_header_output(pdt_list->suc->entry->sym.nsym);		    // expr 的第一个结点: expr
+	pdt_pointer_output(pdt_list->suc->entry->suc);			    // expr 的第二个结点: 3
+	pdt_header_output(pdt_list->suc->entry->suc->suc->sym.nsym);	    // expr 的第三个结点: term
+	pdt_header_output(pdt_list->suc->entry->alt->sym.nsym);		    // expr 的第一个可选结点: term
+	pdt_header_output(pdt_list->suc->suc->entry->sym.nsym);		    // term 的第一个结点: term
+	pdt_pointer_output(pdt_list->suc->suc->entry->suc);		    // term 的第二个结点: 4
+	pdt_header_output(pdt_list->suc->suc->entry->suc->suc->sym.nsym);   // term 的第三个结点: factor
+	pdt_header_output(pdt_list->suc->suc->entry->alt->sym.nsym);	    // term 的第一个可选结点: factor
+	pdt_pointer_output(pdt_list->suc->suc->suc->entry);		    // factor 的第一个结点: 5
+	pdt_header_output(pdt_list->suc->suc->suc->entry->suc->sym.nsym);   // factor 的第二个结点: expr
+	pdt_pointer_output(pdt_list->suc->suc->suc->entry->suc->suc);	    // factor 的第三个结点：6
+	pdt_pointer_output(pdt_list->suc->suc->suc->entry->alt);	    // factor 的可选第一个结点：1
+	//pdt_pointer_output(pdt_list->suc->suc->suc->entry->alt->alt);	    // factor 的可选第一个结点：2
+	*/
+   }
+/*
+void pdt_tree_dump()
+{
     	pdt_header_output(pdt_list->entry->sym.nsym);			    // line 的第一个结点: expr
 	pdt_pointer_output(pdt_list->entry->suc);			    // line 的第二个结点: 2
 	pdt_header_output(pdt_list->suc->entry->sym.nsym);		    // expr 的第一个结点: expr
@@ -735,5 +815,6 @@ void pdt_tree_dump()
 	pdt_header_output(pdt_list->suc->suc->suc->entry->suc->sym.nsym);   // factor 的第二个结点: expr
 	pdt_pointer_output(pdt_list->suc->suc->suc->entry->suc->suc);	    // factor 的第三个结点：6
 	pdt_pointer_output(pdt_list->suc->suc->suc->entry->alt);	    // factor 的可选第一个结点：1
-	pdt_pointer_output(pdt_list->suc->suc->suc->entry->alt->alt);	    // factor 的可选第一个结点：2
+	//pdt_pointer_output(pdt_list->suc->suc->suc->entry->alt->alt);	    // factor 的可选第一个结点：2
 }
+*/

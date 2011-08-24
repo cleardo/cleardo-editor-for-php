@@ -39,7 +39,7 @@ void pdt_factor(pdt_pointer &p, pdt_pointer &q)
     pdt_hpointer h;
 
     int tsym_index;
-    if (lexical_token == ID || lexical_token == PDT_LITERAL)
+    if (lexical_token == ID || lexical_token == PDT_LITERAL || lexical_token == PDT_EMPTY)
     {
 	a = pdt_new_node();
 	//a = (pdt_pointer)malloc(sizeof(struct pdt_node));

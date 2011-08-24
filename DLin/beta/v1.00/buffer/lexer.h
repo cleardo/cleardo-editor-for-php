@@ -26,7 +26,7 @@ void recover();			// 词法分析错误恢复
 void lex_restore();
 void lex_get_lexeme(char*);
 char lex_curchar();
-
+void install_empty();
 /**
  * 测试函数
  */
