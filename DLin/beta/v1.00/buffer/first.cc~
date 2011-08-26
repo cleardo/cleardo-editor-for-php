@@ -224,7 +224,7 @@ void FIRST2(pdt_pointer p, FSList fsl)
 		}
 		else
 		{
-    			fsl2 = fs_table[head].fs;
+			CreateFSL(fsl2);
 		}
 			//cout<<"fsl2: "<<endl;
 			//PrintFSL(fsl2);

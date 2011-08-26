@@ -165,7 +165,7 @@ CreateFSL(fol);
 fsl = FIRST_Str(pdt_list->entry->suc);
 PrintFSL(fsl);
 pdt_hpointer head_fo;
-FOLLOW3(pdt_list, fol);
+FOLLOW3(pdt_list->suc, fol);
 PrintFSL(fol);
 // FOLLOW_all();
 

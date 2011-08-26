@@ -78,4 +78,3 @@ int fs_lookup(char ch[]);
 
 int pdt_isEmpty(int tsym_index);
 int pdt_test_isEmpty();
-void pdt_initTerminalTable();

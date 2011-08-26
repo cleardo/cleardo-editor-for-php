@@ -21,6 +21,6 @@ void PrintFSL(FSList);
 void fs_listDump(FSList l);
 void fs_tableDump2();
 FSList FOLLOW(pdt_hpointer h);
-FSList FOLLOW3(pdt_hpointer h, FSList &fsl);
+FSList FOLLOW3(pdt_hpointer h, FSList fsl);
 void FOLLOW2(pdt_pointer p, FSList fsl, char* sym, pdt_hpointer h);
 void FOLLOW_all();
